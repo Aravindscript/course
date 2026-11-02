@@ -698,3 +698,28 @@ body,
     }
   }
 }
+
+/* Username typing - eyes follow cursor */
+.sp-panda-username .sp-panda-pupil {
+  transition: transform 0.12s ease-out;
+}
+
+/* Password hidden - both eyes closed */
+.sp-panda-closed .sp-panda-eyelid {
+  height: 100%;
+}
+
+/* Password visible - left eye closed */
+.sp-panda-wink .sp-panda-patch-left .sp-panda-eyelid {
+  height: 100%;
+}
+
+/* Password visible - right eye open */
+.sp-panda-wink .sp-panda-patch-right .sp-panda-eyelid {
+  height: 0;
+}
+
+/* Smooth eye movement */
+.sp-panda-pupil {
+  transition: transform 0.12s ease-out;
+}

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import "./style.css";
 
@@ -5,13 +6,15 @@ export default function Panda({
   usernameFocused = false,
   passwordFocused = false,
   showPassword = false,
+  usernameValue = "",
 }) {
   const pandaRef = useRef(null);
   const [pupilPosition, setPupilPosition] = useState({ x: 0, y: 0 });
 
+  // Mouse movement
   useEffect(() => {
     const handlePointerMove = (event) => {
-      if (!pandaRef.current) return;
+      if (!pandaRef.current || usernameFocused || passwordFocused) return;
 
       const rect = pandaRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
@@ -31,58 +34,102 @@ export default function Panda({
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
     };
-  }, []);
+  }, [usernameFocused, passwordFocused]);
 
+  // Username cursor tracking
+  useEffect(() => {
+    if (!usernameFocused) return;
+
+    const updateUsernameGaze = () => {
+      const input = document.activeElement;
+
+      if (!input || typeof input.selectionStart !== "number") return;
+
+      const cursor = input.selectionStart;
+      const text = input.value.substring(0, cursor);
+
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+
+      if (!context) return;
+
+      const styles = window.getComputedStyle(input);
+      context.font = styles.font;
+
+      const textWidth = context.measureText(text).width;
+      const availableWidth = input.clientWidth || 1;
+
+      const caretX =
+        textWidth -
+        (input.scrollLeft || 0) +
+        parseFloat(styles.paddingLeft || 0);
+
+      const normalizedX = (caretX / availableWidth - 0.5) * 10;
+
+      setPupilPosition({
+        x: Math.max(-5, Math.min(5, normalizedX)),
+        y: 3,
+      });
+    };
+
+    updateUsernameGaze();
+  }, [usernameFocused, usernameValue]);
+
+  // Eye states
   const eyeClass = passwordFocused
     ? showPassword
       ? "sp-panda-wink"
       : "sp-panda-closed"
     : "";
 
+  const eyeX = usernameFocused ? pupilPosition.x : pupilPosition.x;
+  const eyeY = usernameFocused
+    ? pupilPosition.y
+    : passwordFocused && showPassword
+    ? 4
+    : pupilPosition.y;
+
   return (
     <div className="sp-panda-wrapper" ref={pandaRef}>
-      <div
-        className={`sp-panda ${eyeClass} ${
-          usernameFocused ? "sp-panda-username" : ""
-        }`}
-      >
+      <div className={`sp-panda ${eyeClass}`}>
+
         {/* Ears */}
         <div className="sp-panda-ear sp-panda-ear-left" />
         <div className="sp-panda-ear sp-panda-ear-right" />
 
         {/* Face */}
         <div className="sp-panda-face">
-          {/* Eye patches */}
+
+          {/* Left Eye */}
           <div className="sp-panda-patch sp-panda-patch-left">
             <div className="sp-panda-eye">
               <div
                 className="sp-panda-pupil"
                 style={{
-                  transform: `translate(${usernameFocused ? 4 : pupilPosition.x}px, ${
-                    usernameFocused ? 0 : pupilPosition.y
-                  }px)`,
+                  transform: `translate(${eyeX}px, ${eyeY}px)`,
                 }}
               />
             </div>
             <div className="sp-panda-eyelid" />
           </div>
 
+          {/* Right Eye */}
           <div className="sp-panda-patch sp-panda-patch-right">
             <div className="sp-panda-eye">
               <div
                 className="sp-panda-pupil"
                 style={{
-                  transform: `translate(${usernameFocused ? 4 : pupilPosition.x}px, ${
-                    usernameFocused ? 0 : pupilPosition.y
-                  }px)`,
+                  transform: `translate(${eyeX}px, ${eyeY}px)`,
                 }}
               />
             </div>
             <div className="sp-panda-eyelid" />
           </div>
 
-          {/* Nose and mouth */}
+          {/* Nose */}
           <div className="sp-panda-nose" />
+
+          {/* Mouth */}
           <div className="sp-panda-mouth">
             <span />
             <span />
